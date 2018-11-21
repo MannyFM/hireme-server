@@ -36,15 +36,15 @@ You can change it in [application.properties](src/main/resources/application.pro
 
 `/api/company`
 
-| Method | Path              | Request                             | Response                 | Protected |
-| :----: | :---------------- | ----------------------------------- | ------------------------ | :-------: |
-|  POST  | `/company`        | RequestBody: <br>_CompanyInfo_      | `{success, message, id}` |    Yes    |
-|   GET  | `/companies/{id}` | PathVariable: <br>`{id}`            | _CompanyInfo_            |     No    |
-|   GET  | `/companies/find` | RequestBody: <br>`{name, location}` | _CompanyInfo_            |     No    |
+| Method | Path              | Request                             | Response                   | Protected |
+| :----: | :---------------- | ----------------------------------- | -------------------------- | :-------: |
+|  POST  | `/company`        | RequestBody: <br>_CompanyInfo_      | `{success, message, id}`   |    Yes    |
+|   GET  | `/companies/{id}` | PathVariable: <br>`{id}`            | _CompanyInfo_              |     No    |
+|   GET  | `/companies/find` | RequestBody: <br>`{name, location}` | [_CompanyInfo_]            |     No    |
 
 ```js
 UserInfo = {
-  username,             // Only in response
+  username,            
   fullname,
   location,
   employment: {         // Optional
@@ -80,4 +80,72 @@ CompanyInfo = {
   description,           // Best search engine in the world
   createdAt,            // Date when entry was created
 }
+```
+
+### Job Offer
+
+`/api/job-offer`
+
+| Method | Path                          | Request                             | Response                   | Protected |
+| :----: | :---------------------------- | ----------------------------------- | -------------------------- | :-------: |
+|  POST  | `/job-offer`                  | RequestBody: <br>_JobOfferInfo_     | `{success, message, id}`   |    Yes    |
+|   GET  | `/job-offers/{id}`            | PathVariable: <br>`{id}`            | _JobOfferInfo_             |    Yes    |
+|   GET  | `/job-offers/find-by-company` | RequestBody: <br>`{company_id}`     | [_JobOfferInfo_]           |    Yes    |
+|   GET  | `/job-offers/find-by-position`| RequestBody: <br>`{position}`       | [_JobOfferInfo_]           |    Yes    |
+|   GET  | `/job-offers/find-by-location`| RequestBody: <br>`{location}`       | [_JobOfferInfo_]           |    Yes    |
+
+```js
+JobOfferInfo = {
+  id,                   // only in response
+  company: {
+      company_id,
+      name,             // only in response
+      logo              // only in response
+  },
+  position,
+  responsibilities,          
+  qualifications,
+  [location]            // list of locations              
+  created_at,           // only in response
+  updated_at            // only in response
+}
+```
+
+### Posts (news feed) - returns the last 10 posts for now
+
+`/api/post`
+
+| Method | Path               | Request                          | Response                   | Protected |
+| :----: | :------------------| -------------------------------- | -------------------------- | :-------: |
+|  POST  | `/post`            | RequestBody: <br>_PostForm_     | `{success, message, id}`   |    Yes    |
+|   GET  | `/posts/{id}`      | PathVariable: <br>`{id}`         | _Post_                     |    Yes    |
+|   GET  | `/posts`           | --                               | [_Post_]                   |    Yes    |
+
+Used in response
+```js
+Post = {
+  id,                      
+  company,                 // is company (true - author is company, false - author is user)
+  author: {
+      id,                  // company id for company or user id for user
+      name                 // fullname for user or company name for company
+  },                 
+  title,
+  text,
+  jobOffers,               // list of JobOfferInfo
+  created_at
+}
+
+```
+
+Used in request
+```js
+PostForm = {
+  company,                 // is company (true - author is company, false - author is user)
+  author,                  // company id for company or user id for user
+  title,
+  text,
+  jobOffersIds             // list of ids of job offers
+}
+
 ```

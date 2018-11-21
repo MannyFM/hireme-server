@@ -2,18 +2,22 @@ package kz.scope.hiremeserver.model
 
 import jdk.nashorn.internal.codegen.ApplySpecialization
 import kz.scope.hiremeserver.model.EmployerInfo
+import kz.scope.hiremeserver.model.audit.DateAudit
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
+import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
 @Entity
 @Table(name="company")
-class Company() {
+class Company() : DateAudit() {
     constructor(manager: EmployerInfo, name: String, location: String,
                 logo: String, numEmployees: Int, specialization: String, description: String) : this() {
         this.manager = manager
         this.name = name
-        this.location = name
+        this.location = location
         this.logo = logo
         this.numEmployees = numEmployees
         this.specialization = specialization
@@ -28,7 +32,7 @@ class Company() {
     @Size(max = 40)
     lateinit var name: String
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "employer_info_id")
     lateinit var manager: EmployerInfo
 
@@ -41,4 +45,8 @@ class Company() {
     var numEmployees: Int = 0
     lateinit var specialization: String
     lateinit var description: String
+
+    // according to https://www.callicoder.com/spring-boot-spring-security-jwt-mysql-react-app-part-3/
+    @OneToMany(mappedBy = "company")
+    var job_offers: Set<JobOffer> = HashSet<JobOffer>()
 }

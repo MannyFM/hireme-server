@@ -1,7 +1,6 @@
 package kz.scope.hiremeserver.model
 
 import kz.scope.hiremeserver.model.audit.DateAudit
-import kz.scope.hiremeserver.payload.StudentProfile
 import org.hibernate.annotations.NaturalId
 import java.time.Instant
 import java.util.*
@@ -16,7 +15,7 @@ import javax.validation.constraints.Size
 
 @Entity
 @Table(name = "users", uniqueConstraints = [UniqueConstraint(columnNames = arrayOf("username")), UniqueConstraint(columnNames = arrayOf("email"))])
-open class User() : DateAudit() {
+class User() : DateAudit() {
     constructor(fullname: String, username: String, email: String, password: String) : this() {
         this.fullname = fullname
         this.username = username
@@ -25,7 +24,7 @@ open class User() : DateAudit() {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
 
     @NotBlank
@@ -46,12 +45,15 @@ open class User() : DateAudit() {
     @Size(max = 100)
     lateinit var password: String
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_profiles", joinColumns = [JoinColumn(name = "user_id")], inverseJoinColumns = [JoinColumn(name = "profile_id")])
+    @OneToOne(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+    @JoinColumn(name = "user_info")
     lateinit var userInfo: UserInfo
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles", joinColumns = [JoinColumn(name = "user_id")], inverseJoinColumns = [JoinColumn(name = "role_id")])
     var roles: Set<Role> = HashSet()
+
+    @OneToMany(mappedBy = "user")
+    var managing: MutableList<EmployerInfo> = ArrayList<EmployerInfo>()
 
 }

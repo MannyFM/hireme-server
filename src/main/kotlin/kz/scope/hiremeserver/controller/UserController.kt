@@ -2,10 +2,7 @@ package kz.scope. hiremeserver.controller
 
 import kz.scope.hiremeserver.exception.ResourceNotFoundException
 import kz.scope.hiremeserver.model.UserInfo
-import kz.scope.hiremeserver.payload.ApiResponse
-import kz.scope.hiremeserver.payload.StudentProfile
-import kz.scope.hiremeserver.payload.UserIdentityAvailability
-import kz.scope.hiremeserver.payload.UserSummary
+import kz.scope.hiremeserver.payload.*
 import kz.scope.hiremeserver.repository.UserInfoRepository
 import kz.scope.hiremeserver.repository.UserRepository
 import kz.scope.hiremeserver.security.CurrentUser
@@ -17,7 +14,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
-import java.time.Instant
 
 private val logger1 = LoggerFactory.getLogger(UserController::class.java)
 
@@ -39,27 +35,41 @@ class UserController {
 
 
     //find the user in the DB and set new value to its userInfo
-    @PostMapping("/user/me/profile")
+    @PostMapping("/user/me")
     @PreAuthorize("hasRole('USER')")
-    fun postCurrentUserProfile(@CurrentUser @RequestBody currentStudent: StudentProfile): ResponseEntity<*> {
+    fun postCurrentUserProfile(@CurrentUser currentUser: UserPrincipal, @RequestBody userProfile: UserProfile): ResponseEntity<*> {
 
-        val user = userRepository.findByUsername(currentStudent.username)
+        val user = userRepository.findByUsername(userProfile.username)
 
-        return if (user == null){
-            ResponseEntity(ApiResponse(false, "No such user"), HttpStatus.EXPECTATION_FAILED)
-        }else {
-            user.userInfo = UserInfo(currentStudent)
+        if (user == null){
+            return ResponseEntity(ApiResponse(false, "No such user"), HttpStatus.EXPECTATION_FAILED)
+        } else if (!user.username.equals(currentUser.username)){
+            return ResponseEntity(ApiResponse(false, "You cannot edit user information for other user"), HttpStatus.EXPECTATION_FAILED)
+        } else {
+
+            user.userInfo.location = userProfile.location
+            user.userInfo.position = userProfile.employment.position
+            user.userInfo.company = userProfile.employment.company
+            user.userInfo.currentRole = userProfile.current_role
+            user.userInfo.university = userProfile.education.university
+            user.userInfo.graduationYear = userProfile.education.graduation_year
+            user.userInfo.graduationMonth = userProfile.education.graduation_month
+            user.userInfo.major = userProfile.education.major
+            user.userInfo.degree = userProfile.education.degree
+            user.userInfo.hidden = userProfile.hidden
+            user.userInfo.jobType = userProfile.job_type
+            user.userInfo.jobField = userProfile.job_field
+            user.userInfo.skills = userProfile.skills
+
 
             userInfoRepository.save(user.userInfo)
             val result = userRepository.save(user)
-
-
 
             val location = ServletUriComponentsBuilder
                     .fromCurrentContextPath().path("/users/{username}")
                     .buildAndExpand(result.username).toUri()
 
-            ResponseEntity.created(location).body(ApiResponse(true, "User profile edited successfully"))
+            return ResponseEntity.created(location).body(ApiResponse(true, "User profile edited successfully"))
         }
     }
 
@@ -67,18 +77,28 @@ class UserController {
     //find the user in the DB and return its userInfo
     @GetMapping("/user/me/profile")
     @PreAuthorize("hasRole('USER')")
-    fun getCurrentUserProfile(@CurrentUser currentStudent: UserPrincipal) : StudentProfile{
-        val student = userInfoRepository.findByUsername(currentStudent.username)
-        if (student != null) {
-            return StudentProfile(student.id, student.username, student.fullname, student.email,
-                    student.sOrGrad, student.location, student.fields, student.education, student.degree,
-                    student.display, student.jobType, student.roleSpecification, student.skillSet)
-        }else{
-
-            return StudentProfile(0, "No", "Such", "User",
-                    false, "", "", "", "",
-                    true, "", "", "")
-        }
+    fun getCurrentUserProfile(@CurrentUser currentUser: UserPrincipal) : UserProfile{
+        val user = userRepository.findByUsername(currentUser.username)
+        if (user != null) {
+            return UserProfile(
+                    user.username,
+                    user.fullname,
+                    user.userInfo.location,
+                    Employment(
+                            user.userInfo.position,
+                            user.userInfo.company),
+                    user.userInfo.currentRole,
+                    Education(
+                            user.userInfo.university,
+                            user.userInfo.graduationYear,
+                            user.userInfo.graduationMonth,
+                            user.userInfo.major,
+                            user.userInfo.degree),
+                    user.userInfo.hidden,
+                    user.userInfo.jobType,
+                    user.userInfo.jobField,
+                    user.userInfo.skills)
+        } else throw ResourceNotFoundException("Profile", "username", currentUser.username)
     }
 
     @GetMapping("/user/checkUsernameAvailability")
@@ -94,11 +114,28 @@ class UserController {
     }
 
     @GetMapping("/users/{username}")
-    fun getUserProfile(@PathVariable(value = "username") username: String): StudentProfile {
-        val userInfo = userInfoRepository.findByUsername(username)
-            ?: throw ResourceNotFoundException("User", "username", username)
-        return StudentProfile(userInfo.id, userInfo.username, userInfo.fullname, userInfo.email, userInfo.sOrGrad,
-                userInfo.location, userInfo.fields, userInfo.education, userInfo.degree, userInfo.display, userInfo.jobType,
-                userInfo.roleSpecification, userInfo.skillSet)
+    fun getUserProfile(@PathVariable(value = "username") username: String): UserProfile {
+        val user = userRepository.findByUsername(username)
+
+        if(user != null) {
+            return UserProfile(
+                    user.username,
+                    user.fullname,
+                    user.userInfo.location,
+                    Employment(
+                            user.userInfo.position,
+                            user.userInfo.company),
+                    user.userInfo.currentRole,
+                    Education(
+                            user.userInfo.university,
+                            user.userInfo.graduationYear,
+                            user.userInfo.graduationMonth,
+                            user.userInfo.major,
+                            user.userInfo.degree),
+                    user.userInfo.hidden,
+                    user.userInfo.jobType,
+                    user.userInfo.jobField,
+                    user.userInfo.skills)
+        } else throw ResourceNotFoundException("Profile", "username", username)
     }
 }

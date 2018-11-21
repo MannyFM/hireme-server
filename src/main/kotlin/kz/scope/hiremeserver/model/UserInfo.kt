@@ -1,12 +1,7 @@
 package kz.scope.hiremeserver.model
 
 import kz.scope.hiremeserver.model.audit.DateAudit
-import kz.scope.hiremeserver.payload.StudentProfile
-import org.hibernate.annotations.NaturalId
-import java.time.Instant
-import java.util.HashSet
 import javax.persistence.*
-import javax.validation.constraints.Email
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
@@ -16,62 +11,73 @@ import javax.validation.constraints.Size
  */
 
 @Entity
-@Table(name = "students", uniqueConstraints = [UniqueConstraint(columnNames = arrayOf("username")), UniqueConstraint(columnNames = arrayOf("email"))])
-class UserInfo//this.joinedAt = student.joinedAt
-(student: StudentProfile) {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long = 0
-
-    var username: String = ""
-
-    var fullname: String = ""
-
-    var email: String = ""
-
-    //var joinedAt: Instant
-
-    //if Student - true, if new graduate - false
-    var sOrGrad : Boolean = false
-
-    //city name
-    var location : String = ""
-
-    //Fields of work (e.g JavaScript, C++)
-    var fields : String = ""
-
-    //University, major etc
-    var education : String = ""
-
-    //Bachelor, Master or PhD
-    var degree : String = ""
-
-    //keep info private - false, public - true
-    var display : Boolean = false
-
-    //part-time, full-time etc
-    var jobType : String
-
-    //mobile app developer, system level programmer etc
-    var roleSpecification : String
-
-    //technical skills
-    var skillSet: String
-
-    init {
-        this.username= student.username
-        this.fullname= student.fullname
-        this.email = student.email
-        this.sOrGrad = student.sOrGrad
-        this.fields = student.fields
-        this.location = student.location
-        this.education = student.education
-        this.skillSet = student.skillSet
-        this.display = student.display
-        this.roleSpecification = student.roleSpecification
-        this.jobType = student.jobType
-        this.degree = student.degree
+@Table(name = "userInfo", uniqueConstraints = [UniqueConstraint(columnNames = arrayOf("id"))])
+class UserInfo(): DateAudit() {
+    constructor(location: String, position: String, company: String, currentRole: String, university: String,
+                graduationYear: Int, graduationMonth: String, major: String, degree: String,
+                hidden: Boolean, jobType: String, jobField: String, skills: String) : this() {
+        this.location = location
+        this.position = position
+        this.company = company
+        this.currentRole = currentRole
+        this.university = university
+        this.graduationYear = graduationYear
+        this.graduationMonth = graduationMonth
+        this.major = major
+        this.degree = degree
+        this.hidden = hidden
+        this.jobType = jobType
+        this.jobField = jobField
+        this.skills = skills
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    var id: Long = 0
+
+    @Size(max = 40)
+    lateinit var location: String
+
+    @Size(max = 40)
+    lateinit var position: String
+
+    @Size(max = 40)
+    lateinit var company: String
+
+    @Size(max = 40)
+    @Column(name = "current_role")
+    lateinit var currentRole: String
+
+    @Size(max = 40)
+    lateinit var university: String
+
+    @Column(name = "graduation_year")
+    var graduationYear: Int = 0
+
+    @Size(max = 40)
+    @Column(name = "graduation_month")
+    lateinit var graduationMonth: String
+
+    @Size(max = 40)
+    lateinit var major: String
+
+    @Size(max = 40)
+    lateinit var degree: String
+
+    var hidden: Boolean = false
+
+    @Size(max = 40)
+    @Column(name = "job_type")
+    lateinit var jobType: String
+
+    @Size(max = 40)
+    @Column(name = "job_field")
+    lateinit var jobField: String
+
+    @Size(max = 40)
+    lateinit var skills: String
+
+    @OneToOne(mappedBy = "userInfo")
+    lateinit var user: User
 
 }
