@@ -9,6 +9,11 @@
 By default, it will run on port 5000. And use MySQL Database on `178.128.170.25:3306`.
 You can change it in [application.properties](src/main/resources/application.properties) file
 
+To run test use:
+```bash
+     $ mvn test
+```
+
 ## API specification
 
 ### Authorization
@@ -24,7 +29,7 @@ You can change it in [application.properties](src/main/resources/application.pro
 
 `/api/user`, `/api/users`
 
-| Method | Path                              | Request                        | Response               | Protected |
+| Method | Path                              | Request                        | Response               | Protected |a
 | :----: | :-------------------------------- | ------------------------------ | ---------------------- | :-------: |
 |   GET  | `/user/me`                        | --                             | `{username, fullname}` |    Yes    |
 |  POST  | `/user/me`                        | RequestBody: <br>_UserInfo_    | `{success, message}`   |    Yes    |
@@ -44,40 +49,56 @@ You can change it in [application.properties](src/main/resources/application.pro
 
 ```js
 UserInfo = {
-  username,            
-  fullname,
-  location,
-  employment: {         // Optional
-    position,
-    company
-  },
-  current_role,         // SE, designer, marketing, sales, management, other
+  username,             // 'the_7th_hokage'
+  location,             // 'Konoha'
   education: {          // Optional
-    university,         // name,              'Nazarbayev University'
-    graduation_year,    // graduation year    2020
-    graduation_month,   // graduation month   'June'
-    major,              //                    'Computer Science'
-    degree,             // Bachelor, Master, PhD
+    university,         // 'Konoha Ninja Academy'
+    graduation,         // 'June 2006'
+    major,              // 'Ninja', 'Computer Science'
+    degree,             // 'Genin', 'Bachelor'
   },
-  hidden,               // Show in search     true
-  job_type,             // Full-time/Part-time/Contractor/Intern
-  job_field,            // [Frontend dev, backend dev, web dev, mobile]
-  skills,               // [react, spring, kotlin, java, tensorflow]
+  hidden,               // true         Show profile in search?
+  strong_skill: {
+    name,               // 'Shadow Clone Technique'
+    description         // 'I can create thousands independent shadow clones, each capable of using other ninja technique'
+  },
+  urls: {
+    github:             // 'https://github.com/the-7th-hokage',
+    linked_in:          // 'https://linkedin.com/in/the-7th-hokage',
+    web:                // 'https://naruto.uzumaki.konoha/in/the-7th-hokage',
+  }
+  skills,               // ['react', 'spring', 'kotlin', 'java', 'tensorflow']
+  employment: {         // Optional
+    company,            // 'Konoha'
+    role,               // 'Hokage'
+    reference: {        // Optional
+      name:             // 'Shikamaru Nara',
+      numer:            // '+7 (700) 101 22 33'
+    }
+  },
   createdAt,            // Date when entry was created
 }
 
 CompanyInfo = {
   id,                   // Only in response
-  name,                 // Google
+  name,                 // 'Google'
+  location,             // 'Astana, Kazakhstan'
+  specialization,       // 'Search Engine'
+  employees,            // '100'        Number of employees
+  experience,           // '21 years'
+  hidden,               // false        Show in search
+  urls: {
+    github:             // 'https://github.com/goolge',
+    linked_in:          // 'https://linkedin.com/in/google',
+    web:                // 'https://google.com',
+  },
   creator: {
-    username,           // m_nny
-    role                // Founder/HR/Team leader
+    username,           // 'the_7th_hokage'
+    fullname,           // 'Naruto Uzumaki'
+    role,               // 'Hokage'         Founder/HR/Team leader
+    linked_in:          // 'https://linkedin.com/in/the-7th-hokage',
   },
   logo_url,             // https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png
-  location,             // Astana, Kazakhstan
-  employee_number,      // 100+
-  specialization,       // Search Engine
-  description,           // Best search engine in the world
   createdAt,            // Date when entry was created
 }
 ```
@@ -105,7 +126,7 @@ JobOfferInfo = {
   position,
   responsibilities,          
   qualifications,
-  [location]            // list of locations              
+  [location]            // list of locations
   created_at,           // only in response
   updated_at            // only in response
 }
@@ -125,14 +146,18 @@ Used in response
 ```js
 Post = {
   id,                      
-  company,                 // is company (true - author is company, false - author is user)
+  company,                  // is company (true - author is company, false - author is user)
   author: {
-      id,                  // company id for company or user id for user
-      name                 // fullname for user or company name for company
-  },                 
-  title,
+      id,                   // company id for company or user id for user
+      name,                 // fullname for user or company name for company
+      avatar_url,
+  },
   text,
-  jobOffers,               // list of JobOfferInfo
+  tags,
+  is_offer, bool
+  offer: {
+    JobOfferInfo
+  }
   created_at
 }
 
